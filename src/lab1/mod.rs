@@ -7,9 +7,9 @@
 
 pub trait StudentTrait {
     fn new(name: String, grades: Vec<u32>) -> Self;
-    fn add_grade(&mut self, grade: u32) -> String;
+    fn add_grade(&mut self, grade: u32) -> Result<(), StudentError>;
     fn average(&self) -> Result<u32, String>;
-    fn highest_grade(&self) -> Result<u32, String>;
+    fn highest_grade(&self) -> Result<u32, StudentError>;
 }
 
 #[derive(Debug)]
@@ -18,31 +18,56 @@ pub struct Student {
     pub grades: Vec<u32>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum StudentError {
+    NoGrades,
+    InvalidGrade,
+}
+
+impl std::fmt::Display for StudentError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            StudentError::NoGrades => write!(f, "No grades available"),
+            StudentError::InvalidGrade => write!(f, "Grade must be between 0 and 100"),
+        }
+    }
+}
+
 impl StudentTrait for Student {
     fn new(name: String, grades: Vec<u32>) -> Self {
         Student { name, grades }
     }
 
-    fn add_grade(&mut self, grade: u32) -> String {
-        if self.grades.len() == 0 {
-            return "Array for grades is empty".to_string();
+    fn add_grade(&mut self, grade: u32) -> Result<(), StudentError> {
+        if grade > 100 {
+            return Err(StudentError::InvalidGrade);
+        }
+
+        if self.check_empty() {
+            return Err(StudentError::NoGrades);
         }
 
         self.grades.push(grade);
-        "grade added".to_string()
+        Ok(())
     }
 
     fn average(&self) -> Result<u32, String> {
-        if self.grades.len() == 0 {
-            return Err("Array for grades is empty".to_string());
-        }
+        self.check_empty();
+
         Ok(self.grades.iter().sum::<u32>() / (self.grades.len() as u32))
     }
 
-    fn highest_grade(&self) -> Result<u32, String> {
-        if self.grades.len() == 0 {
-            return Err("Array for grades is empty".to_string());
-        }
-        Ok(self.grades.clone().into_iter().max().expect("Error"))
+    fn highest_grade(&self) -> Result<u32, StudentError> {
+        self.grades
+            .iter()
+            .max()
+            .copied()
+            .ok_or(StudentError::NoGrades)
+    }
+}
+
+impl Student {
+    fn check_empty(&self) -> bool {
+        self.grades.is_empty()
     }
 }

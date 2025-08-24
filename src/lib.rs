@@ -9,9 +9,9 @@ pub mod lab3;
 
 pub fn proccess_lab1() {
     let mut student = Student::new("John".to_string(), vec![1, 2, 3]);
-    student.add_grade(4);
+    println!("Result: {}", student.add_grade(4).is_ok());
 
-    println!("Student: {:?}", student);
+    println!("Student: {student:?}");
     println!("Average: {}", student.average().unwrap());
     println!("Highest grade: {}", student.highest_grade().unwrap());
 }
